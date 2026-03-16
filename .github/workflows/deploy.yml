@@ -138,13 +138,15 @@ jobs:
             N8N_EDITOR_BASE_URL=https://n8n.qimora.app/
             N8N_BLOCK_ENV_ACCESS_IN_NODE=false
             N8N_PATH=/
+            N8N_DOMAIN=${{ secrets.N8N_DOMAIN }}
+            API_DOMAIN=${{ secrets.API_DOMAIN }}
+            ERP_DOMAIN=${{ secrets.ERP_DOMAIN }}
             WEBHOOK_URL=https://${{ secrets.WEBHOOK_URL }}
             AI_TIMEOUT_MS=${{ secrets.AI_TIMEOUT_MS }}
             AI_CONFIDENCE_THRESHOLD=${{ secrets.AI_CONFIDENCE_THRESHOLD }}
             OLLAMA_BASE_URL=http://ollama:11434
             OLLAMA_CHAT_MODEL=${{ secrets.OLLAMA_CHAT_MODEL }}
             OLLAMA_EMBED_MODEL=${{ secrets.OLLAMA_EMBED_MODEL }}
-            ERP_DOMAIN=${{ secrets.ERP_DOMAIN }}
             IMAGE_PREFIX=ghcr.io/${{ github.repository_owner }}
             EOF
 
