@@ -177,7 +177,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$env.API_DOMAIN}}/automation/classify",
+        "url": "=https://{{$env.API_DOMAIN}}/automation/classify",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
