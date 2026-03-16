@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [develop, main]
 
 env:
   REGISTRY: ghcr.io
@@ -129,14 +129,16 @@ jobs:
             SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
             N8N_PORT=5678
+            N8N_PROTOCOL=${{ secrets.N8N_PROTOCOL }}
             N8N_HOST=0.0.0.0
             N8N_BASIC_AUTH_ACTIVE=true
             N8N_BASIC_AUTH_USER=${{ secrets.N8N_BASIC_AUTH_USER }}
             N8N_BASIC_AUTH_PASSWORD=${{ secrets.N8N_BASIC_AUTH_PASSWORD }}
             N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
+            N8N_EDITOR_BASE_URL=https://n8n.qimora.app/
             N8N_BLOCK_ENV_ACCESS_IN_NODE=false
-            N8N_PATH=/n8n/
-            WEBHOOK_URL=https://${{ secrets.ERP_DOMAIN }}/n8n/
+            N8N_PATH=/
+            WEBHOOK_URL=https://${{ secrets.WEBHOOK_URL }}
             AI_TIMEOUT_MS=${{ secrets.AI_TIMEOUT_MS }}
             AI_CONFIDENCE_THRESHOLD=${{ secrets.AI_CONFIDENCE_THRESHOLD }}
             OLLAMA_BASE_URL=http://ollama:11434
