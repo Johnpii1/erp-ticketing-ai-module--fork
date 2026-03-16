@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabaseClient } from '@/lib/supabaseClient'
+import { useEffect, useState } from "react"
+import { supabaseClient } from "@/lib/supabaseClient"
+import StatusBadge from "@/components/ui/status-badge"
+import TicketSearch from "@/components/tickets/TicketSearch"
 
 import {
   Table,
@@ -10,127 +12,143 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/table'
+} from "@/components/ui/table"
 
-type Ticket = {
-  id: string
-  title: string
-  status: string
-  priority?: string
-  category?: string
-  created_at?: string
-}
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import PriorityBadge from "@/components/ui/priority-badge"
+import { Ticket } from "@/types/ticket"
 
 export default function TicketTable({ tickets }: { tickets: Ticket[] }) {
+
   const [data, setData] = useState<Ticket[]>(tickets)
   const [recentlyUpdated, setRecentlyUpdated] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const filteredTickets = data.filter((ticket) =>
+    ticket.title.toLowerCase().includes(search.toLowerCase())
+  )
 
-  // Sync if SSR changes
   useEffect(() => {
     setData(tickets)
   }, [tickets])
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabaseClient
-      .channel('tickets-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, (payload) => {
-        // INSERT
-        if (payload.eventType === 'INSERT') {
-          const newTicket = payload.new as Ticket
+      .channel("tickets")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tickets" },
+        (payload) => {
 
-          setData((prev) => {
-            // prevent duplicates
-            if (prev.some((t) => t.id === newTicket.id)) return prev
-            return [newTicket, ...prev]
-          })
+          if (payload.eventType === "INSERT") {
+            const newTicket = payload.new as Ticket
+            setData(prev => [newTicket, ...prev])
+          }
+
+          if (payload.eventType === "UPDATE") {
+            const updated = payload.new as Ticket
+
+            setData(prev =>
+              prev.map(ticket =>
+                ticket.id === updated.id ? updated : ticket
+              )
+            )
+
+            setRecentlyUpdated(updated.id)
+            setTimeout(() => setRecentlyUpdated(null), 1500)
+          }
+
+          if (payload.eventType === "DELETE") {
+            const removed = payload.old as Ticket
+            setData(prev => prev.filter(t => t.id !== removed.id))
+          }
+
         }
-
-        // UPDATE
-        if (payload.eventType === 'UPDATE') {
-          const updated = payload.new as Ticket
-
-          setData((prev) => prev.map((ticket) => (ticket.id === updated.id ? updated : ticket)))
-
-          setRecentlyUpdated(updated.id)
-          setTimeout(() => setRecentlyUpdated(null), 1500)
-        }
-
-        // DELETE
-        if (payload.eventType === 'DELETE') {
-          const removed = payload.old as Ticket
-
-          setData((prev) => prev.filter((ticket) => ticket.id !== removed.id))
-        }
-      })
+      )
       .subscribe()
 
     return () => {
       supabaseClient.removeChannel(channel)
     }
+
   }, [])
 
   if (!data.length) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-gray-500 text-sm">
-        No tickets found
-      </div>
+      <Card>
+        <p className="text-sm text-muted-foreground">No tickets found</p>
+      </Card>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-400">
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Category</TableHead>
-          </TableRow>
-        </TableHeader>
+    <Card>
+      <CardHeader>
+        <CardTitle>Tickets</CardTitle>
+      </CardHeader>
 
-        <TableBody>
-          {data.map((ticket, index) => (
-            <TableRow
-              key={ticket.id}
-              className={`
-                ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                ${ticket.id === recentlyUpdated ? 'bg-yellow-50 transition-colors duration-500' : ''}
-                hover:bg-gray-100 transition-colors
-              `}
-            >
-              <TableCell className="font-medium text-gray-800">{ticket.title}</TableCell>
+      <CardContent className="space-y-4">
 
-              <TableCell className="text-gray-600">{ticket.status}</TableCell>
+          <div className="flex items-center justify-between">
 
-              <TableCell>
-                <PriorityBadge value={ticket.priority} />
-              </TableCell>
+            <h3 className="text-sm text-muted-foreground">
+              {filteredTickets.length} tickets
+            </h3>
 
-              <TableCell className="text-gray-600">{ticket.category ?? '—'}</TableCell>
+            <TicketSearch value={search} onChange={setSearch} />
+
+          </div>
+        <Table>
+
+          <TableHeader>
+            <TableRow className="border-b bg-muted/20">
+
+              <TableHead className="font-medium">
+                Title
+              </TableHead>
+
+              <TableHead>Status</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Category</TableHead>
+
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
+          </TableHeader>
 
-function PriorityBadge({ value }: { value?: string }) {
-  const colors: Record<string, string> = {
-    high: 'bg-red-100 text-red-600',
-    medium: 'bg-yellow-100 text-yellow-700',
-    low: 'bg-green-100 text-green-600'
-  }
+          <TableBody>
+            {filteredTickets.map(ticket => (
 
-  return (
-    <span
-      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-        colors[value ?? ''] || 'bg-gray-100 text-gray-600'
-      }`}
-    >
-      {value ?? '—'}
-    </span>
+              <TableRow
+                  key={ticket.id}
+                  className="
+                    hover:bg-muted/50 
+                    transition-colors
+                    duration-200
+                  "
+              >
+
+                <TableCell className="font-medium">
+                  {ticket.title}
+                </TableCell>
+
+                <TableCell>
+                  <StatusBadge value={ticket.status} />
+                </TableCell>
+
+                <TableCell>
+                  <PriorityBadge value={ticket.priority} />
+                </TableCell>
+
+                <TableCell>
+                  {ticket.category ?? "—"}
+                </TableCell>
+
+              </TableRow>
+
+            ))}
+          </TableBody>
+
+        </Table>
+
+      </CardContent>
+    </Card>
   )
 }
