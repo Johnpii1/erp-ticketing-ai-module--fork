@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabaseClient } from '@/lib/supabaseClient'
+import { Button } from "@/components/ui/button"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -55,13 +56,9 @@ export default function LoginPage() {
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-semibold transition-all hover:bg-blue-700 hover:shadow-md active:scale-[0.99] disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Login'}
-          </button>
+          <Button type="submit" disabled={loading} fullWidth>
+            {loading ? "Signing in..." : "Login"}
+          </Button>
 
           {error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">

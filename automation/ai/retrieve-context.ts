@@ -11,7 +11,7 @@ export async function retrieveContext(queryEmbedding: number[]) {
 
   const { data, error } = await supabase.rpc("match_knowledge", {
     query_embedding: toVector(queryEmbedding),
-    match_count: 5
+    match_count: 3
   })
 
   if (error) {

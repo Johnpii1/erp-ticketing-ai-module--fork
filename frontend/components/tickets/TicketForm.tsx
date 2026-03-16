@@ -1,40 +1,42 @@
 'use client'
 
-import { useState } from 'react'
-import { supabaseClient } from '@/lib/supabaseClient'
+import { useState } from "react"
+import { supabaseClient } from "@/lib/supabaseClient"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
-interface TicketData {
-  title: string
-  description: string
-}
+export default function TicketForm() {
 
-export default function TicketForm({
-  createTicket = (data: TicketData) => supabaseClient.from('tickets').insert(data).select().single()
-}) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (loading) return
+
     if (!title.trim()) {
-      setError('Title is required')
+      setError("Title is required")
       return
     }
 
-    setLoading(true)
     setError(null)
+    setLoading(true)
 
-    const { data, error } = await createTicket({
-      title,
-      description
-    })
+    const { data, error } = await supabaseClient
+      .from("tickets")
+      .insert({
+        title: title.trim(),
+        description: description.trim()
+      })
+      .select()
+      .single()
 
     if (error || !data) {
+      setError("Failed to create ticket")
       setLoading(false)
-      setError('Failed to create ticket')
       return
     }
 
@@ -48,58 +50,66 @@ export default function TicketForm({
       })
     })
 
+    setTitle("")
+    setDescription("")
     setLoading(false)
-    setTitle('')
-    setDescription('')
   }
 
   return (
-    <form
-      className="bg-white p-8 rounded-2xl shadow-md border border-gray-200 space-y-6"
-      onSubmit={handleSubmit}
-    >
-      <h3 className="text-xl font-semibold text-gray-900">Create Ticket</h3>
+    <Card>
 
-      <div className="space-y-3">
-        <input
-          className="w-full rounded-xl border border-gray-300 bg-white 
-          px-4 py-3 text-sm text-gray-900 
-          placeholder:text-gray-400 
-          shadow-sm 
-          focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 
-          transition"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+      <CardHeader>
+        <CardTitle>Create Ticket</CardTitle>
+      </CardHeader>
 
-        <textarea
-          className="w-full rounded-xl border border-gray-300 bg-white 
-          px-4 py-3 text-sm text-gray-900 
-          placeholder:text-gray-400 
-          min-h-[120px] resize-none 
-          shadow-sm 
-          focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 
-          transition"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
+      <CardContent>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-semibold transition-all hover:bg-blue-700 hover:shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? 'Creating...' : 'Create Ticket'}
-      </button>
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
-          {error}
-        </p>
-      )}
-    </form>
+          <div className="space-y-2">
+            <label htmlFor="title" className="text-sm font-medium">
+              Title
+            </label>
+
+            <input
+              id="title"
+              className="w-full border bg-background px-3 py-2 text-sm rounded-md
+              focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Title of the issue"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="description" className="text-sm font-medium">
+              Description
+            </label>
+
+            <textarea
+              id="description"
+              className="w-full border bg-background px-3 py-2 text-sm rounded-md min-h-[120px]
+              focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Describe the issue..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-500">
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" disabled={loading} fullWidth>
+            {loading ? "Creating..." : "Create Ticket"}
+          </Button>
+
+        </form>
+
+      </CardContent>
+
+    </Card>
   )
 }
