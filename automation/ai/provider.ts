@@ -11,9 +11,17 @@ export async function callAI(prompt: string): Promise<string> {
   try {
     const response = await ollama.chat({
       model: OLLAMA_MODEL,
+      format: "json",
       messages: [
-        { role: "user", content: prompt }
-      ]
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      options: {
+        temperature: 0,
+        num_predict: 100
+      }
     })
 
     // const duration = Date.now() - startTime
