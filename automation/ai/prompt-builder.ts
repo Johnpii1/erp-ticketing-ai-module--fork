@@ -3,42 +3,51 @@ export function buildClassificationPrompt(params: {
   description: string
   context?: string
 }) {
-    return `
-        You are an AI system responsible for classifying SAV support tickets.
+  return `
+You are an AI system that classifies ERP SAV support tickets.
 
-        You MUST return ONLY valid JSON.
-        Do NOT include explanations, comments, or markdown.
+Return ONLY a valid JSON object.
+The response MUST start with { and end with }.
+Do NOT include explanations, comments, or markdown.
 
-        Allowed priority values:
-        - high
-        - medium
-        - low
+Allowed priority values:
+- high
+- medium
+- low
 
-        Allowed category values:
-        - incident
-        - billing
-        - technical
-        - feature
-        - general
+Allowed category values:
+- incident
+- billing
+- technical
+- feature
+- general
 
-        Output JSON format:
-        {
-          "priority": "high | medium | low",
-          "category": "incident | billing | technical | feature | general",
-          "confidence": number between 0 and 1
-        }
+Category definitions:
+incident = system outage, failure, blocking issue
+billing = invoices, payments, taxes
+technical = bug, integration problem, performance issue
+feature = feature request or improvement
+general = question or guidance
 
-        Use the historical SAV tickets below as reference examples.
+Output JSON format:
+{
+  "priority": "high | medium | low",
+  "category": "incident | billing | technical | feature | general",
+  "confidence": number between 0 and 1
+}
 
-        Historical SAV context:
-        ${params.context ?? "No relevant historical tickets."}
+Rules:
+- Choose only ONE category.
+- Confidence must be between 0 and 1 with max two decimals.
+- If the ticket contains words like "urgent", "asap", or "immediately", set priority to "high".
 
-        Now classify the following ticket.
+Historical SAV examples:
+${params.context ?? "No relevant historical tickets."}
 
-        Ticket:
-        Title: ${params.title}
-        Description: ${params.description}
+Ticket:
+Title: ${params.title}
+Description: ${params.description}
 
-        Return structured JSON only.
-      `
-  }
+Return ONLY the JSON object.
+`
+}
