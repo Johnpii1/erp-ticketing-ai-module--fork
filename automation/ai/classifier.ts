@@ -11,6 +11,17 @@ function extractJSON(text: string) {
   return match ? match[0] : null
 }
 
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Timeout")), ms)
+  )
+
+  return Promise.race([promise, timeout])
+}
+
 async function fetchRAGContext(title: string, description: string): Promise<string> {
   try {
     const embedding = await generateEmbedding(`${title} ${description}`)
@@ -35,12 +46,7 @@ export async function classifyTicket(title: string, description: string) {
 
   let raw: string
   try {
-    raw = await Promise.race([
-      callAI(prompt),
-      new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error("AI timeout")), AI_TIMEOUT)
-      )
-    ])
+    raw = await withTimeout(callAI(prompt), AI_TIMEOUT)
   } catch (err) {
     console.warn("AI call failed:", err)
     return fallbackClassification(title, description)
