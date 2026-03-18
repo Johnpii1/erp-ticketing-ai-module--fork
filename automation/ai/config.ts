@@ -17,3 +17,6 @@ export const OLLAMA_BASE_URL =
 
 export const OLLAMA_MODEL =
   process.env.OLLAMA_MODEL ?? "phi3"
+
+export const OLLAMA_EMBED_MODEL =
+  process.env.OLLAMA_EMBED_MODEL ?? "text-embedding-3-small"
