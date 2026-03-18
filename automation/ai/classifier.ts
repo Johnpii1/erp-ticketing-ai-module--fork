@@ -28,7 +28,12 @@ async function fetchRAGContext(title: string, description: string): Promise<stri
     const contextDocs = await retrieveContext(embedding)
     return contextDocs
       .slice(0, 3)
-      .map((d: any) => d.content)
+      .map((d: any) => `
+    Title: ${d.title ?? ""}
+    Description: ${d.content}
+    Category: ${d.category ?? ""}
+    Priority: ${d.priority ?? ""}
+    `)
       .join("\n")
   } catch {
     return ""

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-CHAT_MODEL="${OLLAMA_CHAT_MODEL:-llama3}"
+CHAT_MODEL="${OLLAMA_MODEL:-llama3}"
 EMBED_MODEL="${OLLAMA_EMBED_MODEL:-nomic-embed-text}"
 
 echo "Starting Ollama server..."
